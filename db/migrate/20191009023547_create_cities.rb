@@ -7,7 +7,6 @@ class CreateCities < ActiveRecord::Migration[5.2]
       t.string :latitude
       t.string :longitude
 
-      t.index :geoname_id
       t.references :state
     end
   end

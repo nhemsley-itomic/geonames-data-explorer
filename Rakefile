@@ -1,11 +1,13 @@
 require 'rubygems'
-require 'erb'
+
 require "active_record"
 require "rails/generators"
 require "rails"
+
 require 'pry'
 require 'csv'
 require 'city-state'
+require 'google_places'
 
 require_relative 'models/models'
 
@@ -118,7 +120,24 @@ namespace :load do
 
   end
     
+  desc "Import geonames data"
+  task :search_places => :environment do
 
+    api_key = 'AIzaSyAezaQp8FdylphmhOpQqdIsZbg1Us66Uvk'
+    places_client = GooglePlaces::Client.new(api_key)
+
+    Country.take(2).each do |country|
+      country.states.take(2).each do |state|
+        state.cities.take(2).each do |city|
+          qualified_city_name = "#{city.name}, #{city.state.name}, #{city.state.country.name}"
+          unless city.geoname.nil?
+            #within a radius of 50km
+            spots = places_client.spots(city.geo, name: 'squash', radius: 50000)
+          end
+        end
+      end
+    end
+  end
 
 end
 

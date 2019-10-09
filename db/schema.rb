@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_10_09_035209) do
+ActiveRecord::Schema.define(version: 2019_10_09_043308) do
 
   create_table "cities", force: :cascade do |t|
     t.string "name"
     t.string "code"
     t.string "geoname_id"
     t.integer "state_id"
+    t.index ["geoname_id"], name: "index_cities_on_geoname_id"
     t.index ["state_id"], name: "index_cities_on_state_id"
   end
 
