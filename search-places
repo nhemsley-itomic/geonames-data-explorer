@@ -1,0 +1,7 @@
+#!/bin/env ruby
+
+require 'pry'
+require 'google_places'
+
+API_KEY = 'AIzaSyAezaQp8FdylphmhOpQqdIsZbg1Us66Uvk'
+@client = GooglePlaces::Client.new(API_KEY)

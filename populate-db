@@ -1,0 +1,33 @@
+#!/bin/env ruby
+
+require 'city-state'
+
+require 'active_record'
+require 'active_support'
+require 'active_support/core_ext'
+
+require 'city-state'
+
+require 'pry'
+
+require_relative 'models/models'
+
+binding.pry
+
+ActiveRecord::Base.configurations = YAML.load(ERB.new(File.read('database.yml')).result)
+ActiveRecord::Base.establish_connection ENV['ENV'] || 'development'
+
+
+countries = CS.countries.map{|k, v| {code: k, name: v}}
+
+countries.each do|country|
+    country_model = Country.new
+    binding.pry
+    (country_code, name, cities) = country.values
+    country[:states] = CS.states(country_code).map {|state_code, name| {state_code: state_code, name: name}}
+
+    country[:states].each do |state|
+        state[:cities] = CS.cities(state[:state_code], country_code)
+    end
+end
+

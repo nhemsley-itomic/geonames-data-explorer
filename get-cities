@@ -1,0 +1,63 @@
+#!/bin/env ruby
+
+require 'pry'
+require 'city-state'
+
+require 'active_support'
+require 'active_support/core_ext'
+require 'csv'
+# require 'geonames'
+
+
+
+def get_countries
+  countries = CS.countries.map{|k, v| {code: k, name: v}}
+
+  countries.each do|country|
+    (country_code, name, cities) = country.values
+    country[:states] = CS.states(country_code).map {|state_code, name| {state_code: state_code, name: name}}
+
+    country[:states].each do |state|
+      state[:cities] = CS.cities(state[:state_code], country_code)
+    end
+  end
+
+  countries
+end
+
+def set_lat_longs_for_cities(countries, geoname_id_map)
+  countries.each do|country|
+    country[:states].each do |state|
+      state[:cities].each do |city|
+        if from_geoname = geoname_id_map[city[:geoname_id]]
+          city[:latitude] = from_geoname[4]
+          city[:longitide] = from_geoname[5]
+        end
+      end
+    end
+  end
+
+  countries
+end
+
+
+countries = get_countries
+
+countries_file = './tmp/allCountries.txt'
+lines = File.foreach(countries_file).first(10)
+
+countries_geonames = lines.join("")
+
+geoname_id_map = {}
+
+CSV.foreach(countries_file, :col_sep => "\t", :quote_char => ">") do |row|
+  geoname_id_map[row.first] = row
+end
+
+binding.pry
+
+set_lat_longs_for_cities(countries, geoname_id_map)
+
+
+binding.pry
+puts "sadfsad"

@@ -1,0 +1,21 @@
+#!/bin/env ruby
+
+require 'pry'
+require 'city-state'
+
+require 'active_support'
+require 'active_support/core_ext'
+
+countries = CS.countries.map{|k, v| {code: k, name: v}}
+
+countries.each do|country|
+    (country_code, name, cities) = country.values
+    country[:states] = CS.states(country_code).map {|state_code, name| {state_code: state_code, name: name}}
+
+    country[:states].each do |state|
+        state[:cities] = CS.cities(state[:state_code], country_code)
+    end
+end
+
+pp countries
+# IO.write('tmp/countries-states-cities.json', JSON.dump(countries))

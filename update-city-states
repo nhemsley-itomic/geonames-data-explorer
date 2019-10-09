@@ -1,0 +1,8 @@
+#!/bin/env ruby
+
+require 'active_support'
+require 'active_support/core_ext'
+require 'city-state'
+
+CS.update_locally
+
