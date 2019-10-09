@@ -132,7 +132,8 @@ namespace :load do
           qualified_city_name = "#{city.name}, #{city.state.name}, #{city.state.country.name}"
           unless city.geoname.nil?
             #within a radius of 50km
-            spots = places_client.spots(city.geo, name: 'squash', radius: 50000)
+            binding.pry
+            spots = places_client.spots(city.geoname.latitude, city.geoname.longitude, name: 'squash', radius: 50000)
           end
         end
       end
