@@ -3,3 +3,4 @@ gems/
 local_gems/
 tmp/*.sqlite3
 db/*.sqlite3*
+config/credentials.yml

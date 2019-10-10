@@ -1,3 +1,4 @@
 class Geoname < ActiveRecord::Base
-    belongs_to :city
+    has_one :city
+    has_many :places
 end

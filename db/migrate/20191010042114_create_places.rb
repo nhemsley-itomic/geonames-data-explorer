@@ -1,8 +1,8 @@
-class CreateSpots < ActiveRecord::Migration[5.2]
+class CreatePlaces < ActiveRecord::Migration[5.2]
   def change
-    create_table :spots do |t|
+    create_table :places do |t|
       t.string :name
-      t.references :city
+      t.references :geoname
       t.text :json_result
       
       t.string :google_place_id

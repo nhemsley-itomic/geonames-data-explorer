@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_10_09_043308) do
+ActiveRecord::Schema.define(version: 2019_10_10_042114) do
 
   create_table "cities", force: :cascade do |t|
     t.string "name"
@@ -46,7 +46,26 @@ ActiveRecord::Schema.define(version: 2019_10_09_043308) do
     t.string "dem"
     t.string "timezone"
     t.date "modification_date"
+    t.integer "population_int"
     t.index ["geoname_id"], name: "index_geonames_on_geoname_id"
+  end
+
+  create_table "places", force: :cascade do |t|
+    t.string "name"
+    t.integer "geoname_id"
+    t.text "json_result"
+    t.string "google_place_id"
+    t.index ["geoname_id"], name: "index_places_on_geoname_id"
+    t.index ["google_place_id"], name: "index_places_on_google_place_id", unique: true
+  end
+
+  create_table "spots", force: :cascade do |t|
+    t.string "name"
+    t.integer "city_id"
+    t.text "json_result"
+    t.string "google_place_id"
+    t.index ["city_id"], name: "index_spots_on_city_id"
+    t.index ["google_place_id"], name: "index_spots_on_google_place_id", unique: true
   end
 
   create_table "states", force: :cascade do |t|
