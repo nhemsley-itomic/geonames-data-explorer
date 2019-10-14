@@ -123,7 +123,7 @@ namespace :load do
 
   end
     
-  desc "Search Places"
+  desc "Search Places (Don't use)"
   task :search_places => :environment do
 
     places_client = GooglePlaces::Client.new(CREDENTIALS.dig('google', 'places', 'api_key'))
@@ -151,7 +151,7 @@ namespace :load do
     end
   end
 
-  desc "Search Places"
+  desc "Search Via Geonames -- Warning Expensive Script. THIS WILL COST ITOMIC MONEY IF RAN WITH AN API_KEY"
   task :search_geonames => :environment do
 
     places_client = GooglePlaces::Client.new(CREDENTIALS.dig('google', 'places', 'api_key'))
