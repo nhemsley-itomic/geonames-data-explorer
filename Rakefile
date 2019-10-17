@@ -1,41 +1,36 @@
 require 'rubygems'
 require 'bundler/setup'
 
-require "active_record"
 require "rails/generators"
 require "rails"
+
+require "active_record"
 
 require 'pry'
 require 'csv'
 require 'city-state'
 require 'google_places'
 
+require 'geonames'
+
 require_relative 'models/models'
 
 include ActiveRecord::Tasks
 
-class SeedLoader
-  def initialize(seed_file)
-    @seed_file = seed_file
-  end
-  def load_seed
-    raise "Seed file '#{@seed_file}' does not exist" unless File.file?(@seed_file)
-    load @seed_file
-  end
-end
 
 CREDENTIALS = YAML.load(IO.read('config/credentials.yml'))
-
 
 DatabaseTasks.env = ENV['ENV'] || 'development'
 DatabaseTasks.root = File.dirname(__FILE__)
 DatabaseTasks.database_configuration = YAML.load(File.read('database.yml'))
 DatabaseTasks.db_dir = 'db'
 DatabaseTasks.migrations_paths= 'db/migrate'
-DatabaseTasks.seed_loader = SeedLoader.new('db/seeds.rb')
+
 task :environment do
   ActiveRecord::Base.configurations = DatabaseTasks.database_configuration
   ActiveRecord::Base.establish_connection DatabaseTasks.env.to_sym
+
+  ActiveRecord::Base.logger = ActiveSupport::Logger.new(Pathname.new(DatabaseTasks.root).join('tmp', 'query.log'))
 end
 
 namespace :db do
@@ -63,6 +58,11 @@ namespace :load do
   task :pry => :environment do
 
       binding.pry
+  end
+
+  desc "Update city-state gem data files"
+  task :update_city_state => :environment do
+    CS.update
   end
 
   desc "Load countries, states and cities"
@@ -113,42 +113,28 @@ namespace :load do
       timezone
       modification_date)
     
-      countries_file = Pathname.new(DatabaseTasks.root).join('tmp', 'cities500.txt')
+    countries_file = Pathname.new(DatabaseTasks.root).join('tmp', 'cities500.txt')
+    Geoname.delete_all
+    CSV.foreach(countries_file, :col_sep => "\t", :quote_char => ">") do |row|
+      record = HashWithIndifferentAccess[geoname_fields.zip(row)]
+      record[:population_int] = record[:population].to_i
 
-      Geoname.delete_all
-      CSV.foreach(countries_file, :col_sep => "\t", :quote_char => ">") do |row|
-        record = Hash[geoname_fields.zip(row)]
-        Geoname.create(record)
-      end
+      Geoname.create(record)
+    end
 
   end
+
+  desc "Import Country Region City Data (from https://www.ip2location.com/free/geoname-id)"
+  task :country_region_city => :environment do
+    geoname_fields = %w(country_code state city geoname_id)
     
-  desc "Search Places (Don't use)"
-  task :search_places => :environment do
-
-    places_client = GooglePlaces::Client.new(CREDENTIALS.dig('google', 'places', 'api_key'))
-
-    Country.all.each do |country|
-      country.states.each do |state|
-        state.cities.each do |city|
-          qualified_city_name = "#{city.name}, #{city.state.name}, #{city.state.country.name}"
-          unless city.geoname.nil? || city.spots
-            #within a radius of 100km
-            spots = places_client.spots(city.geoname.latitude, city.geoname.longitude, name: 'squash', radius: 40000)
-            spots.each do |google_spot|
-              begin
-                spot = Spot.create(name: google_spot.name, city: city, json_result: JSON.dump(google_spot.json_result_object), google_place_id: google_spot.place_id)
-                puts "Adding spot: #{google_spot.name} (#{city.name}, #{state.name}, #{country.name})"
-
-              rescue ActiveRecord::RecordNotUnique => e
-                #spot place_id is not unique (probably)
-                puts "\tError adding spot: #{google_spot.name} (#{city.name}, #{state.name}, #{country.name})"
-              end
-            end
-          end
-        end
-      end
+    countries_file = Pathname.new(DatabaseTasks.root).join('tmp', 'city-state-country.csv')
+    CityStateCountry.delete_all
+    CSV.foreach(countries_file, :col_sep => ",", :quote_char => '"') do |row|
+      record = HashWithIndifferentAccess[geoname_fields.zip(row)]
+      CityStateCountry.create(record)
     end
+
   end
 
   desc "Search Via Geonames -- Warning Expensive Script. THIS WILL COST ITOMIC MONEY IF RAN WITH AN API_KEY"
@@ -179,18 +165,9 @@ namespace :load do
     end
   end
 
-  desc "populate population_int field"
-  task :population_int => :environment do
-    Geoname.all.each do |geoname|
-      geoname.population_int = geoname.population.to_i
-      geoname.save
-    end
-  end
-
-
   desc "Export places [csv|json]"
   task :export, [:format] => :environment do |task, args|
-    places = Place.all
+    places = Place.includes(:geoname).all
 
     headers = [:name, :physical_address, :suburb, :state, :country, :country_code, :postal_address, :telephone, :website, :email, 
               :fb_page_url, :g_place_id, :latitude, :longitude, :g_map_url, :types, :status, :venue_image]
@@ -201,7 +178,7 @@ namespace :load do
       begin
         (lat, long) = [place_json['geometry']['location']['lat'], place_json['geometry']['location']['lng']] 
         google_url = "https://www.google.com/maps/search/?api=1&query=Google&query_place_id=#{place_json['place_id']}"
-        line = [place_json['name'], place_json['plus_code']['compound_code'], nil, nil, nil, place.geoname.country_code, nil, nil, nil, nil, nil, place_json['place_id'], lat, long, google_url, place_json['types'].join(';'), 0, nil]
+        line = [place_json['name'], place_json['plus_code']['compound_code'], place.geoname.city_state_country&.city, place.geoname.city_state_country&.state, Country.where(code: place.geoname.city_state_country&.country_code).first&.name, place.geoname.city_state_country&.country_code, nil, nil, nil, nil, nil, place_json['place_id'], lat, long, google_url, place_json['types'].join(';'), 0, nil]
         output << line
       rescue Exception => e
       end

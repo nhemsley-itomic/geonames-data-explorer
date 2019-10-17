@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_10_10_042114) do
+ActiveRecord::Schema.define(version: 2019_10_16_043843) do
 
   create_table "cities", force: :cascade do |t|
     t.string "name"
@@ -19,6 +19,14 @@ ActiveRecord::Schema.define(version: 2019_10_10_042114) do
     t.integer "state_id"
     t.index ["geoname_id"], name: "index_cities_on_geoname_id"
     t.index ["state_id"], name: "index_cities_on_state_id"
+  end
+
+  create_table "city_state_countries", force: :cascade do |t|
+    t.string "country_code"
+    t.string "state"
+    t.string "city"
+    t.string "geoname_id"
+    t.index ["geoname_id"], name: "index_city_state_countries_on_geoname_id"
   end
 
   create_table "countries", force: :cascade do |t|

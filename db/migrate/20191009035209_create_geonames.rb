@@ -1,4 +1,4 @@
-class Geonames < ActiveRecord::Migration[5.2]
+class CreateGeonames < ActiveRecord::Migration[5.2]
   def change
     create_table :geonames do |t|
       t.string :geoname_id

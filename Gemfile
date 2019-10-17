@@ -15,3 +15,4 @@ gem 'pry-byebug'
 
 gem 'google_places'
 gem 'city-state', :path => './local_gems/city-state'
+gem 'geonames'
