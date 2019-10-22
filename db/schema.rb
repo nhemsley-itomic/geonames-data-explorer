@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_10_16_043843) do
+ActiveRecord::Schema.define(version: 2019_10_22_052611) do
 
   create_table "cities", force: :cascade do |t|
     t.string "name"
@@ -32,6 +32,17 @@ ActiveRecord::Schema.define(version: 2019_10_16_043843) do
   create_table "countries", force: :cascade do |t|
     t.string "name"
     t.string "code"
+  end
+
+  create_table "english_counties", force: :cascade do |t|
+    t.string "postcode"
+    t.string "latitude"
+    t.string "longitude"
+    t.string "eastings"
+    t.string "northings"
+    t.string "ward"
+    t.string "county"
+    t.string "population"
   end
 
   create_table "geonames", force: :cascade do |t|
