@@ -165,6 +165,14 @@ namespace :load do
     end
   end
 
+  desc "load english shires"
+  task :english_counties => :environment do
+    counties = JSON.load(IO.read('tmp/english-counties.json'))
+    counties.each do |county|
+      EnglishCounty.create(county)
+    end
+  end
+
   desc "Export places [csv|json]"
   task :export, [:format] => :environment do |task, args|
     places = Place.includes(:geoname).all
