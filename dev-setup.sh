@@ -1,0 +1,1 @@
+docker run --name "google-places-postgis" -p 25432:5432 -d -t kartoza/postgis
