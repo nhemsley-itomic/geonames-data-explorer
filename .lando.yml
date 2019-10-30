@@ -1,0 +1,11 @@
+name: googleplaces
+services:
+  postgis:
+    type: postgis:11.0-2.5
+    creds:
+      database: gis
+      # Note that you cannot change the below but they are shown here for transparency
+      # You can read more about why this is below
+      # By "NO PASSWORD" we mean the password is blank
+      user: postgres
+      password: 
